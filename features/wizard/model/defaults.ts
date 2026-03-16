@@ -20,6 +20,17 @@ export const DEFAULT_WIZARD_STATE: WizardState = {
   upload: {
     files: [],
   },
+  profile: null,
+  mapping: {
+    selected: [],
+    schema: '',
+    preview: '',
+    warnings: [],
+    supportedVertices: [],
+    supportedEdges: [],
+    confirmed: false,
+    previewDirty: false,
+  },
   columnContext: {
     columns: [],
     globalPriorities: {

@@ -2,7 +2,6 @@
 
 import type { ChangeEvent } from 'react';
 import type { UploadedFileSummary } from '@/features/wizard/model/types';
-import { Section } from '@/features/wizard/ui';
 
 type Props = {
   onAddFiles: (files: UploadedFileSummary[]) => void;
@@ -20,6 +19,7 @@ export function Dropzone({ onAddFiles }: Props) {
       id: crypto.randomUUID(),
       name: file.name,
       sizeBytes: file.size,
+      file,
     }));
 
     onAddFiles(files);
@@ -27,7 +27,7 @@ export function Dropzone({ onAddFiles }: Props) {
   }
 
   return (
-    <Section>
+    <section className="rounded-xl border border-slate-300 bg-white p-5">
       <div className="rounded-xl border-2 border-dashed border-slate-400 bg-slate-50 p-8 text-center">
         <p className="text-lg font-semibold text-slate-900">
           Upload CSV, TSV, or similar structured files
@@ -49,6 +49,6 @@ export function Dropzone({ onAddFiles }: Props) {
           />
         </label>
       </div>
-    </Section>
+    </section>
   );
 }

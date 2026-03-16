@@ -1,14 +1,13 @@
+import { normalizeKitId } from '@/features/wizard/model/kits';
 import { queryCatalog } from '@/features/wizard/model/queries';
-import type { SolutionKitId } from '@/features/wizard/model/types';
+import type { KitId } from '@/features/wizard/model/types';
 
-export function getSuggestedQueriesForSolutionKit(
-  solutionKitId: SolutionKitId | null,
-) {
-  if (!solutionKitId) {
+export function getSuggestedQueriesForSolutionKit(solutionKitId: KitId | null) {
+  const kitId = normalizeKitId(solutionKitId);
+
+  if (!kitId) {
     return [];
   }
 
-  return queryCatalog.filter((query) =>
-    query.solutionKitIds.includes(solutionKitId),
-  );
+  return queryCatalog.filter((query) => query.kitIds.includes(kitId));
 }

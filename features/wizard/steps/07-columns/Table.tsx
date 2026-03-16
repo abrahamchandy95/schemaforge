@@ -2,8 +2,7 @@ import type {
   ColumnAssignedRole,
   ColumnContextColumn,
 } from '@/features/wizard/model/types';
-import { Empty, Table as DataTable } from '@/features/wizard/ui';
-import { Row } from '@/features/wizard/steps/06-columns/Row';
+import { Row } from '@/features/wizard/steps/07-columns/Row';
 
 type Props = {
   columns: ColumnContextColumn[];
@@ -13,13 +12,15 @@ type Props = {
 
 export function Table({ columns, onOpen, onRoleChange }: Props) {
   return (
-    <DataTable title="Detailed Context">
+    <section className="overflow-hidden rounded-xl border-2 border-slate-500 bg-white">
+      <div className="border-b border-slate-500 bg-slate-200 px-4 py-2 text-lg font-bold text-slate-900">
+        Detailed Context
+      </div>
+
       {columns.length === 0 ? (
-        <div className="p-4">
-          <Empty
-            title="No detected columns yet."
-            description="Upload files first so column context can be generated from the data."
-          />
+        <div className="px-4 py-5 text-sm text-slate-600">
+          No detected columns yet. Run the earlier steps first so column context
+          can be built from the profiled files.
         </div>
       ) : (
         <table className="w-full border-collapse text-left text-sm">
@@ -34,9 +35,7 @@ export function Table({ columns, onOpen, onRoleChange }: Props) {
               <th className="border-b border-r border-slate-400 px-3 py-2">
                 Detailed Context
               </th>
-              <th className="border-b border-slate-400 px-3 py-2">
-                Special
-              </th>
+              <th className="border-b border-slate-400 px-3 py-2">Special</th>
             </tr>
           </thead>
 
@@ -54,6 +53,6 @@ export function Table({ columns, onOpen, onRoleChange }: Props) {
           </tbody>
         </table>
       )}
-    </DataTable>
+    </section>
   );
 }

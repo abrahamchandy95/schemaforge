@@ -1,4 +1,4 @@
-import { solutionKits } from '@/features/wizard/model/kits';
+import { isCustomKit, solutionKits } from '@/features/wizard/model/kits';
 import type { SolutionKitId } from '@/features/wizard/model/types';
 import { Section } from '@/features/wizard/ui';
 import { Card } from '@/features/wizard/steps/02-use-case/Card';
@@ -25,8 +25,8 @@ export function Grid({
           <p className="text-sm text-slate-600">
             Choose the solution kit that best matches the graph you want to
             build. If none fit, select{' '}
-            <span className="font-semibold">Other</span> and describe your use
-            case manually.
+            <span className="font-semibold">Custom Use Case</span> and describe
+            your goal manually.
           </p>
 
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
@@ -43,19 +43,19 @@ export function Grid({
         </div>
       </Section>
 
-      {selectedKitId === 'other' && (
+      {isCustomKit(selectedKitId) && (
         <Section title="Describe Your Custom Use Case">
           <textarea
             value={customUseCaseText}
             onChange={(event) => onCustomUseCaseChange(event.target.value)}
             rows={4}
             className="w-full rounded-lg border-2 border-slate-500 bg-white px-4 py-3 text-base leading-7 text-slate-900 outline-none transition focus:border-sky-600"
-            placeholder="Specify entity types, relationships, and queries you expect to run here..."
+            placeholder="Specify the entities, relationships, and query goals you expect to support..."
           />
 
           <p className="mt-2 text-sm text-slate-600">
-            This description will help later steps suggest schema patterns and
-            recommended queries.
+            This will drive later schema and query suggestions when no packaged
+            TigerGraph kit is the right fit.
           </p>
         </Section>
       )}

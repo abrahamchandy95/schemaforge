@@ -1,131 +1,137 @@
-import type { SolutionKitId } from '@/features/wizard/model/types';
+import type { CurrentKitId } from '@/features/wizard/model/types';
 
 export function inferSolutionKitFromGoal(
   goalText: string,
-): SolutionKitId | null {
-  const normalizedGoal = goalText.trim().toLowerCase();
+): CurrentKitId | null {
+  const goal = goalText.trim().toLowerCase();
 
-  if (!normalizedGoal) {
+  if (!goal) {
     return null;
   }
 
   if (
-    includesAny(normalizedGoal, [
-      'fraud',
-      'scam',
-      'money laundering',
-      'aml',
-      'suspicious transaction',
-      'transaction fraud',
-      'identity fraud',
-      'account takeover',
-      'ring detection',
+    includesAny(goal, [
+      'mule account',
+      'money mule',
+      'mule detection',
+      'layered transfers through accounts',
     ])
   ) {
-    return 'fraud-detection';
+    return 'mule_account_detection';
   }
 
   if (
-    includesAny(normalizedGoal, [
+    includesAny(goal, [
+      'application fraud',
+      'synthetic identity',
+      'loan fraud',
+      'account opening fraud',
+      'onboarding fraud',
+      'new account fraud',
+    ])
+  ) {
+    return 'application_fraud';
+  }
+
+  if (
+    includesAny(goal, [
+      'transaction fraud',
+      'payment fraud',
+      'fraud ring',
+      'money laundering',
+      'aml',
+      'suspicious transaction',
+      'chargeback fraud',
+      'account takeover',
+      'shared device fraud',
+    ])
+  ) {
+    return 'transaction_fraud';
+  }
+
+  if (
+    includesAny(goal, [
+      'kyc',
+      'know your customer',
+      'customer due diligence',
+      'identity verification',
+      'compliance onboarding',
+      'sanctions screening',
+    ])
+  ) {
+    return 'entity_resolution_kyc';
+  }
+
+  if (
+    includesAny(goal, [
+      'entity resolution',
+      'identity resolution',
+      'deduplicate',
+      'deduplication',
+      'golden record',
+      'master data',
+      'merge duplicate',
+    ])
+  ) {
+    return 'entity_resolution';
+  }
+
+  if (
+    includesAny(goal, [
       'customer 360',
-      'customer 360 view',
       'single customer view',
       'customer profile',
       'customer journey',
       'crm',
-      'customer relationship',
+      'householding',
     ])
   ) {
-    return 'customer-360';
+    return 'customer_360';
   }
 
   if (
-    includesAny(normalizedGoal, [
-      'supply chain',
-      'supplier',
-      'inventory',
-      'shipment',
-      'logistics',
-      'warehouse',
-      'procurement',
-      'distribution',
-    ])
-  ) {
-    return 'supply-chain-management';
-  }
-
-  if (
-    includesAny(normalizedGoal, [
-      'cybersecurity',
-      'cyber',
-      'threat',
-      'attack path',
-      'vulnerability',
-      'incident',
-      'malware',
-      'breach',
-      'security event',
-    ])
-  ) {
-    return 'cybersecurity-threat-analysis';
-  }
-
-  if (
-    includesAny(normalizedGoal, [
-      'it ops',
-      'asset management',
-      'infrastructure',
-      'server dependency',
-      'service dependency',
-      'configuration item',
-      'observability',
-      'operations',
-    ])
-  ) {
-    return 'it-ops-asset-management';
-  }
-
-  if (
-    includesAny(normalizedGoal, [
-      'entity resolution',
-      'deduplicate',
-      'deduplication',
-      'master data',
-      'golden record',
-      'merge duplicate',
-      'identity resolution',
-    ])
-  ) {
-    return 'entity-resolution';
-  }
-
-  if (
-    includesAny(normalizedGoal, [
-      'compliance',
-      'regulatory',
-      'kyc',
-      'risk monitoring',
-      'financial crime',
-      'sanctions',
-      'audit',
-    ])
-  ) {
-    return 'financial-services-compliance';
-  }
-
-  if (
-    includesAny(normalizedGoal, [
+    includesAny(goal, [
       'recommendation',
       'recommend',
       'personalization',
-      'personalize',
-      'product suggestion',
+      'next best action',
       'next best product',
       'cross-sell',
       'upsell',
     ])
   ) {
-    return 'product-recommendation';
+    return 'product_recommendations';
+  }
+
+  if (
+    includesAny(goal, [
+      'supply chain',
+      'supplier',
+      'inventory',
+      'shipment',
+      'warehouse',
+      'logistics',
+      'procurement',
+      'distribution',
+    ])
+  ) {
+    return 'supply_chain_management';
+  }
+
+  if (
+    includesAny(goal, [
+      'network infrastructure',
+      'service dependency',
+      'application dependency',
+      'asset dependency',
+      'cmdb',
+      'blast radius',
+      'infrastructure topology',
+      'service map',
+      'observability dependency',
+    ])
+  ) {
+    return 'network_infrastructure';
   }
 
   return null;

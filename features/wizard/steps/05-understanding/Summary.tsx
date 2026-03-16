@@ -1,65 +1,68 @@
-import type { DataUnderstandingViewModel } from '@/features/wizard/model/types';
-import { SummaryCard, Table } from '@/features/wizard/ui';
+import type { ProfileState } from '@/features/wizard/model/types';
+import { Section, SummaryCard } from '@/features/wizard/ui';
 
 type Props = {
-  view: DataUnderstandingViewModel;
+  profile: ProfileState;
 };
 
-export function Summary({ view }: Props) {
+export function Summary({ profile }: Props) {
+  if (!profile) {
+    return null;
+  }
+
+  const totalColumns = profile.files.reduce(
+    (sum, file) => sum + file.columns.length,
+    0,
+  );
+
   return (
-    <div className="space-y-4">
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <SummaryCard title="Files Uploaded" value={view.filesUploadedCount} />
-        <SummaryCard title="Total Columns" value={view.totalColumns} />
-        <SummaryCard title="Rows (Estimated)" value={view.totalRowsLabel} />
-        <SummaryCard title="Headers Detected" value={view.headersDetectedLabel} />
+    <div className="grid gap-4 xl:grid-cols-[320px_1fr]">
+      <div className="grid gap-4">
+        <SummaryCard
+          title="Files"
+          value={String(profile.files.length)}
+          note="Uploaded files profiled in memory"
+        />
+        <SummaryCard
+          title="Columns"
+          value={String(totalColumns)}
+          note="Detected from file headers only"
+        />
       </div>
 
-      <Table title="Detected Files & Structures">
-        <table className="w-full border-collapse text-left text-sm">
-          <thead className="bg-slate-100">
-            <tr>
-              <th className="border-b border-r border-slate-400 px-3 py-2">
-                File
-              </th>
-              <th className="border-b border-r border-slate-400 px-3 py-2">
-                Size
-              </th>
-              <th className="border-b border-r border-slate-400 px-3 py-2">
-                Columns
-              </th>
-              <th className="border-b border-r border-slate-400 px-3 py-2">
-                Rows
-              </th>
-              <th className="border-b border-slate-400 px-3 py-2">
-                Headers
-              </th>
-            </tr>
-          </thead>
-
-          <tbody>
-            {view.files.map((file) => (
-              <tr key={file.fileName}>
-                <td className="border-b border-r border-slate-300 px-3 py-2">
-                  {file.fileName}
-                </td>
-                <td className="border-b border-r border-slate-300 px-3 py-2">
-                  {file.sizeLabel}
-                </td>
-                <td className="border-b border-r border-slate-300 px-3 py-2">
-                  {file.columnCount}
-                </td>
-                <td className="border-b border-r border-slate-300 px-3 py-2">
-                  {file.rowCountLabel}
-                </td>
-                <td className="border-b border-slate-300 px-3 py-2">
-                  {file.headersDetected ? 'Yes' : 'No'}
-                </td>
+      <Section title="Profiled Files">
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-left text-sm">
+            <thead className="bg-slate-100">
+              <tr>
+                <th className="border border-slate-300 px-3 py-2">File</th>
+                <th className="border border-slate-300 px-3 py-2">Delimiter</th>
+                <th className="border border-slate-300 px-3 py-2">Headers</th>
+                <th className="border border-slate-300 px-3 py-2">Columns</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </Table>
+            </thead>
+
+            <tbody>
+              {profile.files.map((file) => (
+                <tr key={file.name}>
+                  <td className="border border-slate-300 px-3 py-2">
+                    {file.name}
+                  </td>
+                  <td className="border border-slate-300 px-3 py-2">
+                    {file.delimiter === '\t' ? 'tab' : file.delimiter}
+                  </td>
+                  <td className="border border-slate-300 px-3 py-2">
+                    {file.headersDetected ? 'Yes' : 'No'}
+                  </td>
+                  <td className="border border-slate-300 px-3 py-2">
+                    {file.columns.length}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Section>
     </div>
   );
 }

@@ -1,7 +1,11 @@
-import type { WizardState } from '@/features/wizard/model/types';
-import { applySchemaFeedbackToSchemaDraft } from '@/features/wizard/services/review';
+import type {
+  MappingSelection,
+  MappingState,
+  ProfileState,
+  WizardState,
+} from '@/features/wizard/model/types';
 import { generateFinalSchemaArtifact } from '@/features/wizard/services/final-schema';
-import { generateSchemaDraft } from '@/features/wizard/services/recommendation';
+import { applySchemaFeedbackToSchemaDraft } from '@/features/wizard/services/review';
 import type { FlowAction } from '@/features/wizard/flow/actions';
 import {
   clearGeneratedOutputs,
@@ -44,6 +48,8 @@ export function flowReducer(
           ...state.useCase,
           selectedKitId: action.value,
         },
+        profile: null,
+        mapping: emptyMappingState(),
         ...clearGeneratedOutputs(),
       };
 
@@ -148,6 +154,8 @@ export function flowReducer(
           ...state.upload,
           files: [...state.upload.files, ...action.value],
         },
+        profile: null,
+        mapping: emptyMappingState(),
         columnContext: {
           ...state.columnContext,
           columns: [],
@@ -162,9 +170,92 @@ export function flowReducer(
           ...state.upload,
           files: state.upload.files.filter((file) => file.id !== action.value),
         },
+        profile: null,
+        mapping: emptyMappingState(),
         columnContext: {
           ...state.columnContext,
           columns: [],
+        },
+        ...clearGeneratedOutputs(),
+      };
+
+    case 'profile/set':
+      return {
+        ...state,
+        profile: action.value,
+        mapping: mappingStateFromProfile(action.value),
+        columnContext: {
+          ...state.columnContext,
+          columns: [],
+        },
+        ...clearGeneratedOutputs(),
+      };
+
+    case 'profile/clear':
+      return {
+        ...state,
+        profile: null,
+        mapping: emptyMappingState(),
+        ...clearGeneratedOutputs(),
+      };
+
+    case 'mapping/set-target': {
+      const selected = upsertMappingSelection(
+        state.mapping.selected,
+        action.value,
+      );
+
+      return {
+        ...state,
+        mapping: {
+          ...state.mapping,
+          selected,
+          confirmed: false,
+          previewDirty: true,
+        },
+        ...clearGeneratedOutputs(),
+      };
+    }
+
+    case 'mapping/clear-target':
+      return {
+        ...state,
+        mapping: {
+          ...state.mapping,
+          selected: state.mapping.selected.filter(
+            (item) =>
+              !(
+                item.fileName === action.value.fileName &&
+                item.columnName === action.value.columnName
+              ),
+          ),
+          confirmed: false,
+          previewDirty: true,
+        },
+        ...clearGeneratedOutputs(),
+      };
+
+    case 'mapping/set-preview':
+      return {
+        ...state,
+        mapping: {
+          ...state.mapping,
+          schema: action.value.schema,
+          preview: action.value.preview,
+          warnings: action.value.warnings,
+          supportedVertices: action.value.supportedVertices,
+          supportedEdges: action.value.supportedEdges,
+          previewDirty: false,
+        },
+        ...clearGeneratedOutputs(),
+      };
+
+    case 'mapping/set-confirmed':
+      return {
+        ...state,
+        mapping: {
+          ...state.mapping,
+          confirmed: action.value,
         },
         ...clearGeneratedOutputs(),
       };
@@ -206,7 +297,7 @@ export function flowReducer(
     case 'schema-draft/generate':
       return {
         ...state,
-        schemaDraft: generateSchemaDraft(state),
+        schemaDraft: state.schemaDraft,
         finalSchemaArtifact: null,
       };
 
@@ -266,6 +357,55 @@ export function flowReducer(
     default:
       return assertNever(action);
   }
+}
+
+function emptyMappingState(): MappingState {
+  return {
+    selected: [],
+    schema: '',
+    preview: '',
+    warnings: [],
+    supportedVertices: [],
+    supportedEdges: [],
+    confirmed: false,
+    previewDirty: false,
+  };
+}
+
+function mappingStateFromProfile(profile: ProfileState): MappingState {
+  if (!profile?.mapping) {
+    return emptyMappingState();
+  }
+
+  return {
+    selected: profile.mapping.autoSelected,
+    schema: '',
+    preview: '',
+    warnings: profile.mapping.warnings,
+    supportedVertices: [],
+    supportedEdges: [],
+    confirmed: false,
+    previewDirty: true,
+  };
+}
+
+function upsertMappingSelection(
+  current: MappingSelection[],
+  next: MappingSelection,
+) {
+  const withoutSameColumn = current.filter(
+    (item) =>
+      !(
+        item.fileName === next.fileName &&
+        item.columnName === next.columnName
+      ),
+  );
+
+  const withoutSameTarget = withoutSameColumn.filter(
+    (item) => item.targetKey !== next.targetKey,
+  );
+
+  return [...withoutSameTarget, next];
 }
 
 function assertNever(value: never): never {

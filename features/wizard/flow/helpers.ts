@@ -1,62 +1,57 @@
 import { steps } from '@/features/wizard/model/steps';
-import type { WizardState } from '@/features/wizard/model/types';
+import type { StepId, WizardState } from '@/features/wizard/model/types';
 import { buildInitialColumnContext } from '@/features/wizard/services/column-context';
 import { generateFinalSchemaArtifact } from '@/features/wizard/services/final-schema';
 import { inferSolutionKitFromGoal } from '@/features/wizard/services/goal-inference';
-import { generateSchemaDraft } from '@/features/wizard/services/recommendation';
 
 export function moveToStep(
   state: WizardState,
   nextStepIndex: number,
 ): WizardState {
   const nextStep = steps[nextStepIndex];
-  let nextState = state;
+  let next = state;
 
-  if (shouldInferKit(nextState)) {
-    const inferredKitId = inferSolutionKitFromGoal(
-      nextState.goalPrompt.goalText,
-    );
+  if (shouldInferKit(next)) {
+    const inferredKitId = inferSolutionKitFromGoal(next.goalPrompt.goalText);
 
-    nextState = {
-      ...nextState,
+    next = {
+      ...next,
       useCase: {
-        ...nextState.useCase,
+        ...next.useCase,
         inferredKitId,
         selectedKitId: inferredKitId,
       },
     };
   }
 
-  if (shouldInitializeColumns(nextState, nextStep.id)) {
-    nextState = {
-      ...nextState,
-      columnContext: getInitializedColumnContext(nextState),
+  if (shouldInitializeColumns(next, nextStep.id)) {
+    next = {
+      ...next,
+      columnContext: getInitializedColumnContext(next),
     };
   }
 
-  if (shouldGenerateDraft(nextState, nextStep.id)) {
-    nextState = {
-      ...nextState,
-      schemaDraft: generateSchemaDraft(nextState),
-      finalSchemaArtifact: null,
-    };
-  }
-
-  if (shouldGenerateFinal(nextState, nextStep.id)) {
-    nextState = {
-      ...nextState,
-      finalSchemaArtifact: generateFinalSchemaArtifact(nextState),
+  if (shouldGenerateFinal(next, nextStep.id)) {
+    next = {
+      ...next,
+      finalSchemaArtifact: generateFinalSchemaArtifact(next),
     };
   }
 
   return {
-    ...nextState,
+    ...next,
     currentStepIndex: nextStepIndex,
   };
 }
 
 export function getInitializedColumnContext(state: WizardState) {
-  const initialized = buildInitialColumnContext(state.upload.files);
+  const initialized = buildInitialColumnContext({
+    uploadedFiles: state.upload.files,
+    profiledFiles: state.profile?.files,
+    kit: state.useCase.selectedKitId,
+    mappingSelected: state.mapping.selected,
+    mappingConfirmed: state.mapping.confirmed,
+  });
 
   return {
     ...initialized,
@@ -92,29 +87,18 @@ function shouldInferKit(state: WizardState) {
 
 function shouldInitializeColumns(
   state: WizardState,
-  nextStepId: WizardStateStepId,
+  nextStepId: StepId,
 ) {
   return (
     nextStepId === 'columns' &&
     state.columnContext.columns.length === 0 &&
-    state.upload.files.length > 0
+    (state.profile?.files.length ?? 0) > 0
   );
-}
-
-function shouldGenerateDraft(
-  state: WizardState,
-  nextStepId: WizardStateStepId,
-) {
-  return nextStepId === 'recommendation' && !state.schemaDraft;
 }
 
 function shouldGenerateFinal(
   state: WizardState,
-  nextStepId: WizardStateStepId,
+  nextStepId: StepId,
 ) {
   return nextStepId === 'final' && !state.finalSchemaArtifact;
 }
-
-type WizardStateStepId = WizardState['currentStepIndex'] extends number
-  ? (typeof steps)[number]['id']
-  : never;

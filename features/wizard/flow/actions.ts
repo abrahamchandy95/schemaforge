@@ -1,6 +1,8 @@
 import type {
   ColumnContextColumnPatch,
   ColumnContextGlobalPrioritiesPatch,
+  MappingSelection,
+  ProfileState,
   SchemaDraft,
   SchemaGenerationMode,
   SolutionKitId,
@@ -20,6 +22,27 @@ export type FlowAction =
   | { type: 'queries/remove-custom'; value: string }
   | { type: 'upload/add-files'; value: UploadedFileSummary[] }
   | { type: 'upload/remove-file'; value: string }
+  | { type: 'profile/set'; value: ProfileState }
+  | { type: 'profile/clear' }
+  | {
+      type: 'mapping/set-target';
+      value: MappingSelection;
+    }
+  | {
+      type: 'mapping/clear-target';
+      value: { fileName: string; columnName: string };
+    }
+  | {
+      type: 'mapping/set-preview';
+      value: {
+        schema: string;
+        preview: string;
+        warnings: string[];
+        supportedVertices: string[];
+        supportedEdges: string[];
+      };
+    }
+  | { type: 'mapping/set-confirmed'; value: boolean }
   | { type: 'column-context/initialize' }
   | {
       type: 'column-context/update-column';

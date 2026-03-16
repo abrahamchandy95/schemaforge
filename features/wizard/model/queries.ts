@@ -1,56 +1,83 @@
-import type { SolutionKitId } from '@/features/wizard/model/types';
+import type { CurrentKitId } from '@/features/wizard/model/types';
 
-export type QueryTemplate = {
+export type QueryDef = {
   id: string;
   label: string;
-  solutionKitIds: SolutionKitId[];
+  kitIds: CurrentKitId[];
 };
 
-export const queryCatalog: readonly QueryTemplate[] = [
+export type QueryTemplate = QueryDef;
+
+const allKits: CurrentKitId[] = [
+  'network_infrastructure',
+  'supply_chain_management',
+  'customer_360',
+  'entity_resolution',
+  'product_recommendations',
+  'application_fraud',
+  'entity_resolution_kyc',
+  'mule_account_detection',
+  'transaction_fraud',
+  'custom',
+];
+
+export const queryCatalog: readonly QueryDef[] = [
   {
-    id: 'fraud-circular-money-transfer',
+    id: 'fraud-ring-flow',
     label:
-      'Find circular money transfer patterns (Start: Account, Output: Transfer Loop)',
-    solutionKitIds: ['fraud-detection', 'financial-services-compliance'],
+      'Find circular or layered money movement patterns (start: account or transaction, output: suspicious path or ring)',
+    kitIds: [
+      'transaction_fraud',
+      'application_fraud',
+      'mule_account_detection',
+    ],
   },
   {
-    id: 'fraud-high-risk-clusters',
+    id: 'shared-identity-links',
     label:
-      'Identify high-risk transaction clusters (Start: Transaction, Output: Cluster IDs)',
-    solutionKitIds: ['fraud-detection', 'financial-services-compliance'],
+      'Find shared devices, emails, phones, or addresses between entities (start: person or account, output: linked entity graph)',
+    kitIds: [
+      'transaction_fraud',
+      'application_fraud',
+      'mule_account_detection',
+      'entity_resolution',
+      'entity_resolution_kyc',
+    ],
   },
   {
-    id: 'fraud-shared-device-usage',
+    id: 'entity-merge-candidates',
     label:
-      'Analyze shared device usage between entities (Start: Entity ID, Output: Device Usage Graph)',
-    solutionKitIds: ['fraud-detection', 'entity-resolution'],
+      'Find likely duplicate entities that should resolve to the same profile (start: entity record, output: merge candidates)',
+    kitIds: ['entity_resolution', 'entity_resolution_kyc', 'customer_360'],
+  },
+  {
+    id: 'customer-neighborhood',
+    label:
+      'Explore a customer neighborhood across accounts, products, and interactions (start: customer ID, output: connected customer view)',
+    kitIds: ['customer_360', 'product_recommendations', 'custom'],
+  },
+  {
+    id: 'supply-risk-paths',
+    label:
+      'Trace supply or dependency paths across sites, vendors, and shipments (start: site or supplier, output: impacted path)',
+    kitIds: ['supply_chain_management', 'custom'],
+  },
+  {
+    id: 'infra-impact-analysis',
+    label:
+      'Find service dependency and blast radius paths (start: asset or service, output: impacted downstream graph)',
+    kitIds: ['network_infrastructure', 'custom'],
   },
   {
     id: 'generic-all-paths',
     label:
-      'Detect all paths between two specific entities (Start: Entity A, End: Entity B, Output: Paths)',
-    solutionKitIds: [
-      'fraud-detection',
-      'customer-360',
-      'cybersecurity-threat-analysis',
-      'entity-resolution',
-      'other',
-    ],
+      'Detect all paths between two entities (start: entity A, end: entity B, output: paths)',
+    kitIds: allKits,
   },
   {
     id: 'generic-centrality',
     label:
-      'Calculate centrality scores for a specific node type (Start: Node Type, Output: Centrality Values)',
-    solutionKitIds: [
-      'fraud-detection',
-      'customer-360',
-      'supply-chain-management',
-      'cybersecurity-threat-analysis',
-      'it-ops-asset-management',
-      'entity-resolution',
-      'financial-services-compliance',
-      'product-recommendation',
-      'other',
-    ],
+      'Calculate centrality scores for a node type (start: node type, output: centrality values)',
+    kitIds: allKits,
   },
 ];

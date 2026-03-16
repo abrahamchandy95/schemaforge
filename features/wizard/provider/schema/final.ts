@@ -1,12 +1,13 @@
 'use client';
 
-import { useRoot } from '@/features/wizard/provider/root';
+import { useWizardActions, useWizardState } from '@/features/wizard/provider/root';
 
 export function useFinal() {
-  const { state, dispatch } = useRoot();
+  const { state } = useWizardState();
+  const { generateFinalSchemaArtifact } = useWizardActions();
 
   return {
     finalOut: state.finalSchemaArtifact,
-    generateFinal: () => dispatch({ type: 'final-schema/generate' }),
+    generateFinal: generateFinalSchemaArtifact,
   };
 }

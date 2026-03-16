@@ -98,7 +98,7 @@ function getExpectedMatches(
   selectedKitId: SolutionKitId | null,
   files: DataUnderstandingFileRow[],
 ): DataUnderstandingMatchRow[] {
-  if (selectedKitId === 'fraud-detection') {
+  if (selectedKitId === 'transaction-fraud') {
     const usersFile = files.find((file) => file.fileName.toLowerCase().includes('user'));
     const transactionsFile = files.find((file) =>
       file.fileName.toLowerCase().includes('transaction'),
@@ -162,7 +162,7 @@ function getWarnings(
 ) {
   const warnings = [];
 
-  if (selectedKitId === 'fraud-detection') {
+  if (selectedKitId === 'transaction-fraud') {
     const deviceRow = matches.find((match) => match.expectedField === 'Device Info');
 
     if (deviceRow?.confidence === 'low') {

@@ -1,4 +1,6 @@
 import { steps } from '@/features/wizard/model/steps';
+import { isCustomKit } from '@/features/wizard/model/kits';
+import { requiresConfirmedMapping } from '@/lib/tigergraph/kits/policy';
 import type { WizardState } from '@/features/wizard/model/types';
 
 export function getCurrentStep(state: WizardState) {
@@ -25,7 +27,7 @@ export function canContinueFromCurrentStep(state: WizardState) {
         return false;
       }
 
-      if (state.useCase.selectedKitId === 'other') {
+      if (isCustomKit(state.useCase.selectedKitId)) {
         return state.useCase.customUseCaseText.trim().length > 0;
       }
 
@@ -39,6 +41,25 @@ export function canContinueFromCurrentStep(state: WizardState) {
 
     case 'upload':
       return state.upload.files.length > 0;
+
+    case 'understanding':
+      return state.profile !== null;
+
+    case 'mapping':
+      if (!state.profile) {
+        return false;
+      }
+
+      if (requiresConfirmedMapping(state.useCase.selectedKitId)) {
+        return (
+          state.mapping.confirmed &&
+          !state.mapping.previewDirty &&
+          state.mapping.schema.trim().length > 0 &&
+          state.mapping.preview.trim().length > 0
+        );
+      }
+
+      return true;
 
     case 'columns':
       return state.columnContext.columns.length > 0;

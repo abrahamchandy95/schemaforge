@@ -10,68 +10,114 @@ import {
   Truck,
   Users,
 } from 'lucide-react';
-import type { SolutionKitId } from '@/features/wizard/model/types';
+import type {
+  CurrentKitId,
+  KitId,
+  LegacyKitId,
+} from '@/features/wizard/model/types';
 
-export type SolutionKitOption = {
-  id: SolutionKitId;
+export type KitOption = {
+  id: CurrentKitId;
   title: string;
   subtitle: string;
   icon: LucideIcon;
 };
 
-export const solutionKits: readonly SolutionKitOption[] = [
+export type SolutionKitOption = KitOption;
+
+export const kitOptions: readonly KitOption[] = [
   {
-    id: 'fraud-detection',
-    title: 'Fraud Detection',
-    subtitle: 'Patterns for identity, transaction, and network fraud',
+    id: 'transaction_fraud',
+    title: 'Transaction Fraud',
+    subtitle: 'Payments, parties, merchants, cards, devices, and fraud rings',
     icon: ShieldAlert,
   },
   {
-    id: 'customer-360',
-    title: 'Customer 360',
-    subtitle: 'A complete view of customer data and relationships',
-    icon: Users,
-  },
-  {
-    id: 'supply-chain-management',
-    title: 'Supply Chain Management',
-    subtitle: 'Optimize logistics, inventory, and supplier flows',
-    icon: Truck,
-  },
-  {
-    id: 'cybersecurity-threat-analysis',
-    title: 'Cybersecurity Threat Analysis',
-    subtitle: 'Trace attack vectors and analyze vulnerabilities',
+    id: 'application_fraud',
+    title: 'Application Fraud',
+    subtitle: 'Application journeys, synthetic identities, and risky link analysis',
     icon: Shield,
   },
   {
-    id: 'it-ops-asset-management',
-    title: 'IT Ops & Asset Management',
-    subtitle: 'Monitor infrastructure performance and dependency mapping',
-    icon: Server,
-  },
-  {
-    id: 'entity-resolution',
-    title: 'Entity Resolution',
-    subtitle: 'Deduplicate data and create master entity profiles',
-    icon: ScanSearch,
-  },
-  {
-    id: 'financial-services-compliance',
-    title: 'Financial Services Compliance',
-    subtitle: 'Graph-based risk analysis and anti-money laundering reporting',
+    id: 'mule_account_detection',
+    title: 'Mule Account Detection',
+    subtitle: 'Identify accounts used to move or layer suspicious funds',
     icon: Landmark,
   },
   {
-    id: 'product-recommendation',
-    title: 'Product Recommendation',
-    subtitle: 'Personalize offers based on user behavior and relationships',
+    id: 'entity_resolution',
+    title: 'Entity Resolution',
+    subtitle: 'Resolve duplicates and unify records into shared entities',
+    icon: ScanSearch,
+  },
+  {
+    id: 'entity_resolution_kyc',
+    title: 'Entity Resolution / KYC',
+    subtitle: 'Resolve identities for onboarding, compliance, and due diligence',
+    icon: Users,
+  },
+  {
+    id: 'customer_360',
+    title: 'Customer 360',
+    subtitle: 'Build a connected customer view across products and touchpoints',
+    icon: Users,
+  },
+  {
+    id: 'product_recommendations',
+    title: 'Product Recommendations',
+    subtitle: 'Model people, products, and behavior for personalization',
     icon: Sparkles,
   },
   {
-    id: 'other',
-    title: 'Other (Custom Use Case)',
-    subtitle: 'None of the existing kits fit my specific needs',
+    id: 'supply_chain_management',
+    title: 'Supply Chain Management',
+    subtitle: 'Track suppliers, shipments, sites, and operational dependencies',
+    icon: Truck,
+  },
+  {
+    id: 'network_infrastructure',
+    title: 'Network Infrastructure',
+    subtitle: 'Model assets, services, dependencies, and impact paths',
+    icon: Server,
+  },
+  {
+    id: 'custom',
+    title: 'Custom Use Case',
+    subtitle: 'Use your own entities, relationships, and query goals',
     icon: Settings2,
   },
-];
+] satisfies readonly KitOption[];
+
+export const solutionKits = kitOptions;
+
+const legacyToCurrent: Record<LegacyKitId, CurrentKitId> = {
+  'transaction-fraud': 'transaction_fraud',
+  'customer-360': 'customer_360',
+  'supply-chain-management': 'supply_chain_management',
+  'cybersecurity-threat-analysis': 'network_infrastructure',
+  'it-ops-asset-management': 'network_infrastructure',
+  'entity-resolution': 'entity_resolution',
+  'financial-services-compliance': 'entity_resolution_kyc',
+  'product-recommendation': 'product_recommendations',
+  other: 'custom',
+};
+
+export function normalizeKitId(id: KitId | null): CurrentKitId | null {
+  if (!id) {
+    return null;
+  }
+
+  if (Object.prototype.hasOwnProperty.call(legacyToCurrent, id)) {
+    return legacyToCurrent[id as LegacyKitId];
+  }
+
+  return id as CurrentKitId;
+}
+
+export function isTxKit(id: KitId | null) {
+  return normalizeKitId(id) === 'transaction_fraud';
+}
+
+export function isCustomKit(id: KitId | null) {
+  return normalizeKitId(id) === 'custom';
+}

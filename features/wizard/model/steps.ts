@@ -26,7 +26,13 @@ export const steps = [
   {
     id: 'understanding',
     title: 'Data Understanding',
-    description: 'Review samples, warnings, and data quality notes.',
+    description: 'Profile uploaded files and inspect kit match coverage.',
+  },
+  {
+    id: 'mapping',
+    title: 'Column Mapping',
+    description:
+      'Map uploaded columns to kit fields, refresh the loading job preview, and confirm the result.',
   },
   {
     id: 'columns',

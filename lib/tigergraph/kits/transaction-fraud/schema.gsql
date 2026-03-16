@@ -1,0 +1,3 @@
+CREATE GRAPH Transaction_Fraud (Community, Address, City, Merchant, State, Zipcode, Payment_Transaction, Card, Merchant_Category, Party, Phone, Email, IP, Device, ID, Full_Name, DOB, Concept, Merchant_Merchant, Merchant_Receive_Transaction, Card_Send_Transaction, Card_Card, Merchant_Assigned, Is_SubCategory, Has_Interaction_With_Merchant, Has_Address, Is_Merchant, Party_Has_Card, Has_Phone, Has_Email, Has_Community, Has_ID, Has_IP, Has_Device, Assigned_To, Located_In, Has_DOB, Has_Full_Name, DESCRIBES, IS_CHILD_OF)
+
+SET exit_on_error = "false"

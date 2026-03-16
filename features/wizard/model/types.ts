@@ -1,18 +1,53 @@
-export type SchemaGenerationMode = 'basic' | 'advanced';
+import type {
+  MappingBundle as TgMappingBundle,
+  MappingColumnState as TgMappingColumnState,
+  MappingSelection as TgMappingSelection,
+  MappingSuggestion as TgMappingSuggestion,
+  SuggestedColumnMapping as TgSuggestedColumnMapping,
+} from '@/lib/tigergraph/mapping/types';
+import type {
+  ProfiledColumn as TgProfiledColumn,
+  ProfileMatch as TgProfileMatch,
+  ProfileMatchState as TgProfileMatchState,
+  ProfiledFile as TgProfiledFile,
+} from '@/lib/tigergraph/profiling/types';
+import type {
+  Draft as TgDraft,
+  DraftAttr as TgDraftAttr,
+  DraftEdge as TgDraftEdge,
+  DraftVertex as TgDraftVertex,
+  FinalArtifact as TgFinalArtifact,
+  FinalMapRow as TgFinalMapRow,
+} from '@/lib/tigergraph/schema/types';
 
-export type WizardStepId =
+export type WizardMode = 'basic' | 'advanced';
+
+export type StepId =
   | 'goal'
   | 'use-case'
   | 'queries'
   | 'upload'
   | 'understanding'
+  | 'mapping'
   | 'columns'
   | 'recommendation'
   | 'review'
   | 'final';
 
-export type SolutionKitId =
-  | 'fraud-detection'
+export type CurrentKitId =
+  | 'network_infrastructure'
+  | 'supply_chain_management'
+  | 'customer_360'
+  | 'entity_resolution'
+  | 'product_recommendations'
+  | 'application_fraud'
+  | 'entity_resolution_kyc'
+  | 'mule_account_detection'
+  | 'transaction_fraud'
+  | 'custom';
+
+export type LegacyKitId =
+  | 'transaction-fraud'
   | 'customer-360'
   | 'supply-chain-management'
   | 'cybersecurity-threat-analysis'
@@ -22,50 +57,52 @@ export type SolutionKitId =
   | 'product-recommendation'
   | 'other';
 
-export type SuggestedQueryId = string;
+export type KitId = CurrentKitId | LegacyKitId;
+export type QueryId = string;
 
-export interface WizardStep {
-  id: WizardStepId;
+export interface Step {
+  id: StepId;
   title: string;
   description: string;
 }
 
-export interface GoalPromptFormData {
+export interface GoalInput {
   goalText: string;
-  mode: SchemaGenerationMode;
+  mode: WizardMode;
 }
 
-export interface UseCaseFormData {
-  selectedKitId: SolutionKitId | null;
+export interface UseCaseInput {
+  selectedKitId: KitId | null;
   customUseCaseText: string;
-  inferredKitId: SolutionKitId | null;
+  inferredKitId: KitId | null;
 }
 
-export interface CustomQuery {
+export interface QueryItem {
   id: string;
   text: string;
 }
 
-export interface QueriesFormData {
-  selectedSuggestedQueryIds: SuggestedQueryId[];
-  customQueries: CustomQuery[];
+export interface QueryInput {
+  selectedSuggestedQueryIds: QueryId[];
+  customQueries: QueryItem[];
   draftCustomQueryText: string;
   isAddingCustomQuery: boolean;
 }
 
-export interface UploadedFileSummary {
+export interface UploadFile {
   id: string;
   name: string;
   sizeBytes: number;
+  file: File;
 }
 
-export interface UploadFormData {
-  files: UploadedFileSummary[];
+export interface UploadInput {
+  files: UploadFile[];
 }
 
 export type MatchConfidence = 'high' | 'medium' | 'low';
 
-export interface DataUnderstandingFileRow {
+export interface UnderstandingFile {
   fileName: string;
   sizeLabel: string;
   columnCount: number;
@@ -73,7 +110,7 @@ export interface DataUnderstandingFileRow {
   headersDetected: boolean;
 }
 
-export interface DataUnderstandingMatchRow {
+export interface UnderstandingMatch {
   requirement: 'Required' | 'Optional';
   expectedField: string;
   expectedDetails?: string;
@@ -83,30 +120,30 @@ export interface DataUnderstandingMatchRow {
   statusNote?: string;
 }
 
-export interface DataUnderstandingWarning {
+export interface UnderstandingWarning {
   id: string;
   message: string;
 }
 
-export interface DataUnderstandingViewModel {
+export interface UnderstandingView {
   filesUploadedCount: number;
   totalColumns: number;
   totalRowsLabel: string;
   headersDetectedLabel: string;
-  files: DataUnderstandingFileRow[];
-  matches: DataUnderstandingMatchRow[];
-  warnings: DataUnderstandingWarning[];
+  files: UnderstandingFile[];
+  matches: UnderstandingMatch[];
+  warnings: UnderstandingWarning[];
   note: string;
 }
 
-export type ColumnAssignedRole =
+export type ColRole =
   | 'vertex'
   | 'edge'
   | 'attribute'
   | 'edge-attribute'
   | 'ignore';
 
-export type ColumnContextBooleanFlag =
+export type ColFlag =
   | 'isRealEntity'
   | 'isIdentifier'
   | 'isTraversalStartingPoint'
@@ -119,31 +156,23 @@ export type ColumnContextBooleanFlag =
   | 'requiresSecondaryIndex'
   | 'connectsToMultipleVertexTypes';
 
-export type ColumnModelingPriority =
+export type ModelPriority =
   | 'balanced'
   | 'accuracy'
   | 'performance'
   | 'extensibility';
 
-export type SimplicityVsFlexibility =
-  | 'simplicity'
-  | 'balance'
-  | 'flexibility';
+export type SimplicityPref = 'simplicity' | 'balance' | 'flexibility';
+export type TemporalPref = 'yes' | 'no' | 'partial';
+export type ScalePref = 'performance' | 'balance' | 'extensibility';
 
-export type TemporalPreference = 'yes' | 'no' | 'partial';
-
-export type PerformanceVsExtensibility =
-  | 'performance'
-  | 'balance'
-  | 'extensibility';
-
-export interface ColumnContextColumn {
+export interface ColumnSpec {
   id: string;
   name: string;
   dataType: string;
   sampleValue: string;
   fileSource: string;
-  assignedRole: ColumnAssignedRole;
+  assignedRole: ColRole;
 
   isRealEntity: boolean;
   isIdentifier: boolean;
@@ -162,91 +191,129 @@ export interface ColumnContextColumn {
   connectsToMultipleVertexTypes: boolean;
 
   dataRangeOrConstraint: string;
-  modelingPriority: ColumnModelingPriority;
+  modelingPriority: ModelPriority;
   guidance: string;
 }
 
-export type ColumnContextColumnPatch = Partial<
+export type ColumnPatch = Partial<
   Omit<
-    ColumnContextColumn,
+    ColumnSpec,
     'id' | 'name' | 'dataType' | 'sampleValue' | 'fileSource'
   >
 >;
 
-export interface ColumnContextGlobalPriorities {
-  simplicityVsFlexibility: SimplicityVsFlexibility;
-  temporalModeling: TemporalPreference;
-  performanceVsExtensibility: PerformanceVsExtensibility;
+export interface DesignPrefs {
+  simplicityVsFlexibility: SimplicityPref;
+  temporalModeling: TemporalPref;
+  performanceVsExtensibility: ScalePref;
 }
 
-export type ColumnContextGlobalPrioritiesPatch =
-  Partial<ColumnContextGlobalPriorities>;
+export type DesignPrefsPatch = Partial<DesignPrefs>;
 
-export interface ColumnContextFormData {
-  columns: ColumnContextColumn[];
-  globalPriorities: ColumnContextGlobalPriorities;
+export interface ColumnContext {
+  columns: ColumnSpec[];
+  globalPriorities: DesignPrefs;
 }
 
-export interface SchemaVertexDraft {
-  id: string;
-  name: string;
-  sourceColumnIds: string[];
-  description: string;
-}
+export type MappingSuggestion = TgMappingSuggestion;
+export type MappingColumnState = TgMappingColumnState;
+export type SuggestedColumnMapping = TgSuggestedColumnMapping;
+export type MappingSelection = TgMappingSelection;
+export type MappingBundle = TgMappingBundle;
 
-export interface SchemaEdgeDraft {
-  id: string;
-  name: string;
-  fromVertexId: string;
-  toVertexId: string;
-  sourceColumnIds: string[];
-  description: string;
-}
+export type ProfiledColumn = TgProfiledColumn;
+export type ProfiledFile = TgProfiledFile;
+export type ProfileMatchState = TgProfileMatchState;
+export type ProfileMatch = TgProfileMatch;
 
-export interface SchemaAttributeDraft {
-  id: string;
-  name: string;
-  ownerType: 'vertex' | 'edge';
-  ownerId: string;
-  sourceColumnId: string;
-  dataType: string;
-}
+export type DraftVertex = TgDraftVertex;
+export type DraftEdge = TgDraftEdge;
+export type DraftAttr = TgDraftAttr;
+export type Draft = TgDraft;
 
-export interface SchemaDraft {
-  title: string;
-  summary: string;
-  vertices: SchemaVertexDraft[];
-  edges: SchemaEdgeDraft[];
-  attributes: SchemaAttributeDraft[];
-  assumptions: string[];
-  feedbackHistory: string[];
-}
+export type FinalMapRow = TgFinalMapRow;
+export type FinalArtifact = TgFinalArtifact;
 
-export interface SchemaReviewFormData {
+export type ProfileData = {
+  selectedKitId: KitId | null;
+  profiledAgainst: string | null;
+  files: ProfiledFile[];
+  matches: ProfileMatch[];
+  warnings: string[];
+  mapping: MappingBundle | null;
+} | null;
+
+export type MapState = {
+  selected: MappingSelection[];
+  schema: string;
+  preview: string;
+  warnings: string[];
+  supportedVertices: string[];
+  supportedEdges: string[];
+  confirmed: boolean;
+  previewDirty: boolean;
+};
+
+export interface ReviewState {
   draftFeedbackText: string;
 }
 
-export interface FinalSchemaMappingRow {
-  fileName: string;
-  columnName: string;
-  graphTarget: string;
-}
-
-export interface FinalSchemaArtifact {
-  schemaText: string;
-  loadingJobText: string;
-  mappingRows: FinalSchemaMappingRow[];
-  summaryLines: string[];
-}
-
-export interface WizardState {
+export interface WizardData {
   currentStepIndex: number;
-  goalPrompt: GoalPromptFormData;
-  useCase: UseCaseFormData;
-  queries: QueriesFormData;
-  upload: UploadFormData;
-  columnContext: ColumnContextFormData;
-  schemaDraft: SchemaDraft | null;
-  schemaReview: SchemaReviewFormData;
-  finalSchemaArtifact: FinalSchemaArtifact | null;
+  goalPrompt: GoalInput;
+  useCase: UseCaseInput;
+  queries: QueryInput;
+  upload: UploadInput;
+  profile: ProfileData;
+  mapping: MapState;
+  columnContext: ColumnContext;
+  schemaDraft: Draft | null;
+  schemaReview: ReviewState;
+  finalSchemaArtifact: FinalArtifact | null;
 }
+
+/**
+ * Compatibility aliases.
+ * Delete these after the repo no longer imports the old names.
+ */
+export type SchemaGenerationMode = WizardMode;
+export type WizardStepId = StepId;
+export type SolutionKitId = KitId;
+export type SuggestedQueryId = QueryId;
+
+export type WizardStep = Step;
+export type GoalPromptFormData = GoalInput;
+export type UseCaseFormData = UseCaseInput;
+export type CustomQuery = QueryItem;
+export type QueriesFormData = QueryInput;
+export type UploadedFileSummary = UploadFile;
+export type UploadFormData = UploadInput;
+
+export type DataUnderstandingFileRow = UnderstandingFile;
+export type DataUnderstandingMatchRow = UnderstandingMatch;
+export type DataUnderstandingWarning = UnderstandingWarning;
+export type DataUnderstandingViewModel = UnderstandingView;
+
+export type ColumnAssignedRole = ColRole;
+export type ColumnContextBooleanFlag = ColFlag;
+export type ColumnModelingPriority = ModelPriority;
+export type SimplicityVsFlexibility = SimplicityPref;
+export type PerformanceVsExtensibility = ScalePref;
+export type ColumnContextColumn = ColumnSpec;
+export type ColumnContextColumnPatch = ColumnPatch;
+export type ColumnContextGlobalPriorities = DesignPrefs;
+export type ColumnContextGlobalPrioritiesPatch = DesignPrefsPatch;
+export type ColumnContextFormData = ColumnContext;
+
+export type SchemaVertexDraft = DraftVertex;
+export type SchemaEdgeDraft = DraftEdge;
+export type SchemaAttributeDraft = DraftAttr;
+export type SchemaDraft = Draft;
+export type SchemaReviewFormData = ReviewState;
+
+export type FinalSchemaMappingRow = FinalMapRow;
+export type FinalSchemaArtifact = FinalArtifact;
+
+export type ProfileState = ProfileData;
+export type MappingState = MapState;
+export type WizardState = WizardData;
